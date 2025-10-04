@@ -1,70 +1,31 @@
-
-# 🛡️ VulnHunter Pro — Intelligent Business Logic Scanner
-
-VulnHunter Pro is an adaptive, AI-driven security testing tool designed to find complex business logic flaws (Workflow Bypass, Price Manipulation, Privilege Escalation) that traditional DAST scanners miss. It uses validated True Positive findings to continuously train a lightweight ML model and prioritize high-probability attack sequences.
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Python 3.10+
-
-### Installation
-```bash
-git clone https://github.com/YourOrg/VulnHunter_Pro.git
-cd VulnHunter_Pro
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-mkdir ai_data
-# confirmed_vulnerabilities.csv will be created on first run
-```
-
-### Run
-**Interactive dashboard (recommended)**
-```bash
-streamlit run src/ui/dashboard.py
-```
-
-**CLI**
-```bash
-python main.py --url http://api.target-domain.com --template attacks/templates/ecommerce_checkout.yaml
-```
-
----
-
-## 🧠 Architecture Overview
+# VulnHunter Pro
 
 VulnHunter Pro is organized into modular components that operate inside a single, stateful orchestration loop.
 
-Mermaid architecture diagram (rendered on GitHub / Mermaid-capable viewers):
+## 🏗️ Architecture Overview
+
+Mermaid architecture diagram (renders on GitHub / Mermaid-capable viewers):
 
 ```mermaid
 flowchart LR
   A[Reconnaissance] --> B[Business Logic Tester]
-  B --> C[Orchestrator (Executor)]
-  C --> D[Verification Engine (Validator)]
-  D --> E[AI Pattern Learner (Brain)]
+  B --> C[Orchestrator]
+  C --> D[Verification Engine]
+  D --> E[AI Pattern Learner]
   E --> B
+
   subgraph Runtime
     C
     D
   end
-
-  style A fill:#f9f,stroke:#333,stroke-width:1px
-  style B fill:#fffae6,stroke:#333,stroke-width:1px
-  style C fill:#e6f7ff,stroke:#333,stroke-width:1px
-  style D fill:#e6ffe6,stroke:#333,stroke-width:1px
-  style E fill:#fff0f6,stroke:#333,stroke-width:1px
 ```
 
 ### Component Responsibilities
 - **Reconnaissance**: fingerprint target tech stack, discover endpoints, enumerate workflows.
-- **Business Logic Tester (Generator)**: converts `WorkflowTemplate` YAMLs into `LogicAttack` sequences (stateful multi-step requests).
-- **Orchestrator (Executor)**: executes attacks using a persistent `httpx` session, handles dynamic data extraction and state tracking.
-- **Verification Engine (Validator)**: applies success criteria against execution logs to determine True Positives and produces PoC artifacts.
-- **AI Pattern Learner (Brain)**: trains a lightweight Logistic Regression model on confirmed findings and produces a `Priority Score` for future attacks.
+- **Business Logic Tester (Generator)**: converts WorkflowTemplate YAMLs into LogicAttack sequences (stateful multi-step requests).
+- **Orchestrator**: executes attacks using a persistent httpx session, handles dynamic data extraction and state tracking.
+- **Verification Engine**: applies success criteria against execution logs to determine True Positives and produces PoC artifacts.
+- **AI Pattern Learner**: trains a lightweight Logistic Regression model on confirmed findings and produces a Priority Score for future attacks.
 
 ---
 
@@ -73,28 +34,22 @@ flowchart LR
 Mermaid workflow diagram:
 
 ```mermaid
-sequenceDiagram
-  participant G as Generator
-  participant P as Pattern Learner
-  participant E as Executor
-  participant V as Validator
-  P->>G: Provide Priority Scores
-  G->>E: Ordered attack sequences
-  E->>V: Execution logs + evidence
-  V->>P: Confirmed True Positives
-  P->>P: Retrain model (update weights)
+flowchart LR
+  P[Prioritization - AI Learner] --> E[Execution - Orchestrator]
+  E --> V[Validation - Verification Engine]
+  V --> L[Learning - AI Retrain]
+  L --> P
 ```
 
-**Loop description**
-1. **Prioritization** — `AI Pattern Learner` scores generated attacks.
-2. **Execution** — `Orchestrator` runs high-priority attacks first.
-3. **Validation** — `Verification Engine` checks success criteria and marks True Positives.
-4. **Learning** — confirmed findings retrain the model to shift priorities.
+### Loop Description
+- **Prioritization** — AI Pattern Learner scores generated attacks.
+- **Execution** — Orchestrator runs high-priority attacks first.
+- **Validation** — Verification Engine checks success criteria and marks True Positives.
+- **Learning** — confirmed findings retrain the model to shift priorities.
 
 ---
 
 ## 🗂️ File Structure (important paths)
-
 ```
 VulnHunter_Pro/
 ├─ src/
@@ -130,16 +85,16 @@ VulnHunter_Pro/
 ---
 
 ## ✅ Verification & Evidence
-The `Verification Engine`:
+The Verification Engine:
 - Parses execution logs to apply success criteria (e.g., unauthorized state change, altered price, or final HTTP status).
 - Produces a PoC script and attaches technical evidence (HTTP requests/responses, extracted variables).
 
 ---
 
 ## ⚙️ AI Learner Details
-- Model: Lightweight Logistic Regression (scikit-learn).
-- Features: `attack_type`, `target_stack`, `previous_success_rates`, `template_tags` (e.g., "checkout", "admin-flow").
-- Feedback loop: Each confirmed finding is appended to `ai_data/confirmed_vulnerabilities.csv` and triggers a retrain.
+- **Model**: Lightweight Logistic Regression (scikit-learn).
+- **Features**: attack_type, target_stack, previous_success_rates, template_tags (e.g., `checkout`, `admin-flow`).
+- **Feedback loop**: Each confirmed finding is appended to `ai_data/confirmed_vulnerabilities.csv` and triggers a retrain.
 
 ---
 
@@ -174,6 +129,43 @@ success_criteria:
 ## 🧾 Contribution & License
 Contributions are welcome. Follow standard GitHub PR flow and include tests for new attack generators and validators.
 
+Licensed under **MIT** — adapt as necessary for your org.
+
+---
+
+## Appendix — Diagrams (raw Mermaid)
+
+**Architecture Diagram**
+```mermaid
+flowchart LR
+  A[Reconnaissance] --> B[Business Logic Tester]
+  B --> C[Orchestrator]
+  C --> D[Verification Engine]
+  D --> E[AI Pattern Learner]
+  E --> B
+
+  subgraph Runtime
+    C
+    D
+  end
+```
+
+**Workflow Diagram**
+```mermaid
+flowchart LR
+  P[Prioritization - AI Learner] --> E[Execution - Orchestrator]
+  E --> V[Validation - Verification Engine]
+  V --> L[Learning - AI Retrain]
+  L --> P
+```
+
+
+
+---
+
+## 🧾 Contribution & License
+Contributions are welcome. Follow standard GitHub PR flow and include tests for new attack generators and validators.
+
 Licensed under MIT — adapt as necessary for your org.
 
 ---
@@ -184,4 +176,5 @@ Licensed under MIT — adapt as necessary for your org.
 
 ---
 
-*Generated: README.md for VulnHunter Pro. If you'd like a PDF, a ZIP with examples, or a rendered PNG of the diagrams, tell me which format and I'll include it.*
+
+
